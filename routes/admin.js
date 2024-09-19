@@ -6,6 +6,8 @@ const rootDir = require('../utils/path');
 
 const router = express.Router();
 
+const products = [];
+
 router.get('/add-product', (req, res, next) => {
     // console.log('In another middleware');
     //If not calling next middleware we need to send response
