@@ -2,25 +2,10 @@ const path = require('path');
 
 const express = require('express');
 
-const rootDir = require('../utils/path');
-const adminData = require('./admin')
+const productsController = require('../controllers/products');
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-    // console.log('In another middleware');
-    //If not calling next middleware we need to send response
-    // console.log('shop.js',  adminData.products)
-    // res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-    const products = adminData.products;
-    res.render('shop',{
-        prods: products,
-        path: '/',
-        pageTitle: 'Shop',
-        hasProducts: products.length>0,
-        activeShop: true,
-        productCSS: true
-    });
-});
+router.get('/', productsController.getProducts);
 
 module.exports = router;
