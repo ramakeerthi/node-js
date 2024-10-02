@@ -7,6 +7,10 @@ const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop')
 const commonController = require('./controllers/common');
 const sequelize = require('./utils/database');
+const Product = require('./models/product');
+const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 const app = express();
 
@@ -17,14 +21,43 @@ app.use(bodyParser.urlencoded({extended:false}));
 // parses req body and calls next to continue middleware funnel, extended restricts to current form type input
 app.use(express.static(path.join(__dirname,'public/')));
 
+app.use((req, res, next) => {
+    User.findByPk(1)
+        .then( user => {
+            req.user = user;
+            next();
+        })
+        .catch( err => console.log(err));
+});
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(commonController.getPageNotFound);
 
+Product.belongsTo(User, {constraints:true, onDelete: 'CASCADE'});
+User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User); // Redundant just to dempnstrate. previous line/one way is sufficient
+Cart.belongsToMany(Product, { through: CartItem});
+Product.belongsToMany(Cart, { through: CartItem});
+
+
+// sequelize.sync({ force: true})
 sequelize.sync()
-    .then( result => {
-        // console.log(result);
+    .then( () => {
+        return User.findByPk(1);
+    })
+    .then( user => {
+        if(!user){
+            return User.create({ name: 'Ram', email: 'email@mail.com'});
+        }
+        return Promise.resolve(user);
+    })
+    .then( user => {
+        return user.createCart();
+    })
+    .then( () => {
         app.listen(3000);
     })
     .catch( err => console.log(err));
